@@ -27,8 +27,13 @@ except Exception as e:
 print("--------------------------------------------")
 
 print(f"{session.event['OfficialEventName']}")
-print(f"{session.event['EventDate']}")
-print("Session Results:")
-print(f"{session.results.loc[:, ['Position', 'DriverNumber', 'Abbreviation', 'BroadcastName', 'TeamName']].to_string(index=False)}")
+print(f"{session.event['EventDate']} \n")
+print("The competing drivers for this session are:")
+
+available_drivers = session.drivers
+
+for driverNum in available_drivers:
+    current_driver = session.get_driver(driverNum)
+    print(f"{driverNum} - {current_driver['FullName']} ({current_driver['Abbreviation']})")
 
 print("--------------------------------------------")
