@@ -83,13 +83,12 @@ for x in tyre_change:
 # Normalise data to remove In/Out Laps, SVC Laps, etc
 laptime_seconds = selected_driver_data['LapTime'].dt.total_seconds()
 mean_laptime_seconds = laptime_seconds.mean()
-laptime_std_dev = laptime_seconds.std()
 
-# Normalised data stored as a dataframe, holds 95% of data about the mean
-normal_driver_data = selected_driver_data.loc[(laptime_seconds < mean_laptime_seconds + (2 * laptime_std_dev)) & (laptime_seconds > mean_laptime_seconds - (2 * laptime_std_dev)), :]
+# Normalised data stored as a dataframe, removes 20% of most extreme data (lower 10% and upper 10% extremes)
+normal_driver_data = selected_driver_data.loc[(laptime_seconds < mean_laptime_seconds * 1.1) & (laptime_seconds > mean_laptime_seconds * 0.9), :]
 
 x = normal_driver_data['LapNumber']
-y = normal_driver_data['LapTime']
+y = normal_driver_data['LapTime'].dt.total_seconds()
 
 # Plotting styles
 compounds = ['SOFT', 'MEDIUM', 'HARD', 'INTERMEDIATE', 'WET', 'TEST_UNKNOWN', 'UNKNOWN']
@@ -100,7 +99,13 @@ fastf1.plotting.setup_mpl(misc_mpl_mods=False, color_scheme='fastf1')
 fig, ax = plt.subplots()
 ax.plot(x, y, label=selected_driver['FullName'])
 
-init_compound = normal_driver_data.loc[normal_driver_data['LapNumber'] == 1, 'Compound'].to_string(index=False)
+y_min, y_max = ax.get_ylim()
+
+ax.axhspan(ymin=mean_laptime_seconds, ymax=y_max, color='red', alpha=0.3)
+ax.axhspan(ymin=y_min, ymax=mean_laptime_seconds, color='green', alpha=0.3)
+
+
+init_compound = selected_driver_data.loc[selected_driver_data['LapNumber'] == 1, 'Compound'].to_string(index=False)
 init_comp_index = compounds.index(init_compound)
 init_comp_color = compound_color_map[init_comp_index]
 
@@ -115,6 +120,6 @@ for x in tyre_change.keys():
 
 ax.set_xlabel('Lap Number')
 ax.set_ylabel('Lap Time')
-ax.set_title('Lap Time Per Lap')
+ax.set_title(f'Lap Time Per Lap at \n {session.event['EventName']}')
 ax.legend()
 plt.show()
