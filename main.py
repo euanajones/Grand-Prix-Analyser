@@ -74,6 +74,7 @@ for i in range(len(stint_data)-1):
 
         tyre_change[i+2] = 'UNKNOWN'
 
+# Saves lap:compound data into a dictionary
 for x in tyre_change:
     compound = selected_driver_data.pick_lap(x)['Compound']
     tyre_change[x] = compound.to_string(index=False)
@@ -83,21 +84,33 @@ laptime_seconds = selected_driver_data['LapTime'].dt.total_seconds()
 mean_laptime_seconds = laptime_seconds.mean()
 laptime_std_dev = laptime_seconds.std()
 
+# Normalised data stored as a dataframe, holds 95% of data about the mean
 normal_driver_data = selected_driver_data.loc[(laptime_seconds < mean_laptime_seconds + (2 * laptime_std_dev)) & (laptime_seconds > mean_laptime_seconds - (2 * laptime_std_dev)), :]
 
-t = normal_driver_data['LapTime']
+x = normal_driver_data['LapNumber']
+y = normal_driver_data['LapTime']
 
-l = normal_driver_data['LapNumber']
+# Plotting styles
+compounds = ['SOFT', 'MEDIUM', 'HARD', 'INTERMEDIATE', 'WET', 'TEST_UNKNOWN', 'UNKNOWN']
+compound_color_map = ['red', 'yellow', 'white', 'green', 'blue', 'gray', 'gray']
 
 fastf1.plotting.setup_mpl(misc_mpl_mods=False, color_scheme='fastf1')
 
 fig, ax = plt.subplots()
-ax.plot(l, t, label=selected_driver['FullName'])
+ax.plot(x, y, label=selected_driver['FullName'])
 
-ax.axvline(x=1, color='r', label=normal_driver_data.loc[normal_driver_data['LapNumber'] == 1, 'Compound'].to_string(index=False), ls=':')
+init_compound = normal_driver_data.loc[normal_driver_data['LapNumber'] == 1, 'Compound'].to_string(index=False)
+init_comp_index = compounds.index(init_compound)
+init_comp_color = compound_color_map[init_comp_index]
+
+ax.axvline(x=1, color=init_comp_color, label=init_compound, ls=':')
 
 for x in tyre_change.keys():
-    ax.axvline(x=x, color='r', label=tyre_change.get(x), ls=':')
+    current_compound = tyre_change.get(x)
+    comp_index = compounds.index(current_compound)
+    comp_color = compound_color_map[comp_index]
+
+    ax.axvline(x=x, color=comp_color, label=current_compound, ls=':')
 
 ax.set_xlabel('Lap Number')
 ax.set_ylabel('Lap Time')
