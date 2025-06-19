@@ -16,13 +16,14 @@ except Exception as e:
 
 fastf1.Cache.enable_cache('cache')
 
-YEAR = 2024
-TRACK = 'Silverstone'
+year = int(input("Please select a year in Formula One: "))
+track = input("Please select a track on the calendar for this year: ")
+
 TYPE = 'R'
 
 # Loads session data from FastF1 API call
 try:
-    session = fastf1.get_session(YEAR, TRACK, TYPE)
+    session = fastf1.get_session(year, track, TYPE)
     session.load()
 except Exception as e:
     print(f"Error occured when accessing FastF1 API sessions: {e}")
