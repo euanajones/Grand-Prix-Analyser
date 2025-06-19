@@ -57,7 +57,7 @@ print(f"Here is all lap data for {selected_driver['Abbreviation']}")
 
 # Uses FastF1 API to pull specified driver lap data
 selected_driver_num = selected_driver['DriverNumber']
-selected_driver_data = session.laps.pick_drivers(selected_driver_num).pick_accurate()
+selected_driver_data = session.laps.pick_drivers(selected_driver_num)
 
 print(selected_driver_data.loc[:, ['Driver', 'LapNumber', 'LapTime', 'Stint', 'Compound', 'TyreLife']].to_string(index=False))
 
@@ -78,19 +78,26 @@ for x in tyre_change:
     compound = selected_driver_data.pick_lap(x)['Compound']
     tyre_change[x] = compound.to_string(index=False)
 
-t = selected_driver_data['LapTime']
+# Normalise data to remove In/Out Laps, SVC Laps, etc
+laptime_seconds = selected_driver_data['LapTime'].dt.total_seconds()
+mean_laptime_seconds = laptime_seconds.mean()
+laptime_std_dev = laptime_seconds.std()
 
-l = selected_driver_data['LapNumber']
+normal_driver_data = selected_driver_data.loc[(laptime_seconds < mean_laptime_seconds + (2 * laptime_std_dev)) & (laptime_seconds > mean_laptime_seconds - (2 * laptime_std_dev)), :]
+
+t = normal_driver_data['LapTime']
+
+l = normal_driver_data['LapNumber']
 
 fastf1.plotting.setup_mpl(misc_mpl_mods=False, color_scheme='fastf1')
 
 fig, ax = plt.subplots()
 ax.plot(l, t, label=selected_driver['FullName'])
 
-ax.axvline(x=1, color='r', label=selected_driver_data.loc[selected_driver_data['LapNumber'] == 1, 'Compound'].to_string(index=False))
+ax.axvline(x=1, color='r', label=normal_driver_data.loc[normal_driver_data['LapNumber'] == 1, 'Compound'].to_string(index=False), ls=':')
 
 for x in tyre_change.keys():
-    ax.axvline(x=x, color='r', label=tyre_change.get(x))
+    ax.axvline(x=x, color='r', label=tyre_change.get(x), ls=':')
 
 ax.set_xlabel('Lap Number')
 ax.set_ylabel('Lap Time')
