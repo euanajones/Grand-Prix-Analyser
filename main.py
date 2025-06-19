@@ -49,4 +49,31 @@ except Exception as e:
     print(f"An error occured whilst searching for driver {selected_driver_id}: {e}")
     exit(0)
 
-print(f"You have selected {selected_driver['BroadcastName']} ({selected_driver['CountryCode']}), part of the {selected_driver['TeamName']} F1 Team.")
+print(f"\nYou have selected {selected_driver['BroadcastName']} ({selected_driver['CountryCode']}), part of the {selected_driver['TeamName']} F1 Team.")
+
+print(f"Here is all lap data for {selected_driver['Abbreviation']}")
+
+# Uses FastF1 API to pull specified driver lap data
+selected_driver_num = selected_driver['DriverNumber']
+selected_driver_data = session.laps.pick_drivers(selected_driver_num)
+
+print(selected_driver_data.loc[:, ['Driver', 'LapNumber', 'LapTime', 'Stint', 'Compound', 'TyreLife']].to_string(index=False))
+
+# Converts pandas stint series into list
+stint_data = selected_driver_data['Stint'].to_list()
+
+tyre_change = {}
+
+for i in range(len(stint_data)-1):
+    current_stint = stint_data[i]
+
+    if stint_data[i+1] != current_stint:
+        current_stint = stint_data[i+1]
+
+        tyre_change[i+2] = 'UNKNOWN'
+
+for x in tyre_change:
+    compound = selected_driver_data.pick_lap(x)['Compound']
+    tyre_change[x] = compound.to_string(index=False)
+
+print(str(tyre_change))
