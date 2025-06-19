@@ -1,5 +1,7 @@
 import fastf1
+import fastf1.plotting
 import os
+from matplotlib import pyplot as plt
 
 # Handles cache directory to improve API performance
 try:
@@ -55,7 +57,7 @@ print(f"Here is all lap data for {selected_driver['Abbreviation']}")
 
 # Uses FastF1 API to pull specified driver lap data
 selected_driver_num = selected_driver['DriverNumber']
-selected_driver_data = session.laps.pick_drivers(selected_driver_num)
+selected_driver_data = session.laps.pick_drivers(selected_driver_num).pick_accurate()
 
 print(selected_driver_data.loc[:, ['Driver', 'LapNumber', 'LapTime', 'Stint', 'Compound', 'TyreLife']].to_string(index=False))
 
@@ -76,4 +78,22 @@ for x in tyre_change:
     compound = selected_driver_data.pick_lap(x)['Compound']
     tyre_change[x] = compound.to_string(index=False)
 
-print(str(tyre_change))
+t = selected_driver_data['LapTime']
+
+l = selected_driver_data['LapNumber']
+
+fastf1.plotting.setup_mpl(misc_mpl_mods=False, color_scheme='fastf1')
+
+fig, ax = plt.subplots()
+ax.plot(l, t, label=selected_driver['FullName'])
+
+ax.axvline(x=1, color='r', label=selected_driver_data.loc[selected_driver_data['LapNumber'] == 1, 'Compound'].to_string(index=False))
+
+for x in tyre_change.keys():
+    ax.axvline(x=x, color='r', label=tyre_change.get(x))
+
+ax.set_xlabel('Lap Number')
+ax.set_ylabel('Lap Time')
+ax.set_title('Lap Time Per Lap')
+ax.legend()
+plt.show()
