@@ -5,3 +5,7 @@ A python script using the FastF1 API, that analyses selected driver performance 
 FastF1 gives access to F1 lap timing, car telemetry and position, tyre data, weather data, the event schedule and session results, utilising pandas to store data in dataframes.
 
 More info about FastF1 API can be found here: [FastF1 API Documentation](https://docs.fastf1.dev/)
+
+## Known Issues
+I have found that there are some issues with using the FastF1 API to access data from older seasons, particularly pre-2020. When loading a session the API will present a warning message, where you will have to manually terminate the script and rerun it with a new season and or track.
+I am looking to fix this issue by prompting the user with a more detailed error message and to select a different season and or track, removing the need to rerun the script again.
