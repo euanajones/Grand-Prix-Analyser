@@ -3,6 +3,8 @@ import fastf1.plotting
 from requests import session
 import streamlit as st
 from matplotlib import pyplot as plt
+import plotly.express as px
+import plotly.graph_objects as go
 
 def getDrivers(year, track):
     try:
@@ -63,40 +65,71 @@ def displayDriverData(session, driver, driver_data):
     # Normalised data stored as a dataframe, removes 20% of most extreme data (lower 10% and upper 10% extremes)
     normal_driver_data = driver_data.loc[(laptime_seconds < mean_laptime_seconds * 1.1) & (laptime_seconds > mean_laptime_seconds * 0.9), :]
 
+    # Prepare normalised lap data
     x = normal_driver_data['LapNumber']
     y = normal_driver_data['LapTime'].dt.total_seconds()
 
-    # Plotting styles
+    # Base scatter plot
+    fig = px.scatter(
+        x=x,
+        y=y,
+        labels={'x': 'Lap Number', 'y': 'Lap Time (s)'},
+        title=f'Lap Time Per Lap at {session.event["EventName"]}'
+    )
+
+    # Add driver lap trace (line instead of scatter if preferred)
+    fig.add_trace(go.Scatter(
+        x=x,
+        y=y,
+        mode='lines+markers',
+        name=driver['FullName'],
+        line=dict(color='pink')
+    ))
+
+    # Shaded regions for above/below mean lap time
+    fig.add_shape(type="rect",
+                x0=min(x), x1=max(x),
+                y0=mean_laptime_seconds, y1=max(y),
+                fillcolor="red", opacity=0.2, line_width=0)
+
+    fig.add_shape(type="rect",
+                x0=min(x), x1=max(x),
+                y0=min(y), y1=mean_laptime_seconds,
+                fillcolor="green", opacity=0.2, line_width=0)
+
+    # Tyre compound colours
     compounds = ['SOFT', 'MEDIUM', 'HARD', 'INTERMEDIATE', 'WET', 'TEST_UNKNOWN', 'UNKNOWN']
     compound_color_map = ['red', 'yellow', 'white', 'green', 'blue', 'gray', 'gray']
 
-    fastf1.plotting.setup_mpl(misc_mpl_mods=False, color_scheme='fastf1')
-
-    fig, ax = plt.subplots()
-    ax.plot(x, y, label=driver['FullName'])
-
-    y_min, y_max = ax.get_ylim()
-
-    ax.axhspan(ymin=mean_laptime_seconds, ymax=y_max, color='red', alpha=0.3)
-    ax.axhspan(ymin=y_min, ymax=mean_laptime_seconds, color='green', alpha=0.3)
-
-
+    # Initial compound line
     init_compound = driver_data.loc[driver_data['LapNumber'] == 1, 'Compound'].to_string(index=False)
     init_comp_index = compounds.index(init_compound)
     init_comp_color = compound_color_map[init_comp_index]
 
-    ax.axvline(x=1, color=init_comp_color, label=init_compound, ls=':')
+    fig.add_vline(
+        x=1,
+        line=dict(color=init_comp_color, dash="dot"),
+        annotation_text=init_compound,
+        annotation_position="top"
+    )
 
-    for x in tyre_change.keys():
-        current_compound = tyre_change.get(x)
+    # Tyre change vertical lines
+    for lap, current_compound in tyre_change.items():
         comp_index = compounds.index(current_compound)
         comp_color = compound_color_map[comp_index]
 
-        ax.axvline(x=x, color=comp_color, label=current_compound, ls=':')
+        fig.add_vline(
+            x=lap,
+            line=dict(color=comp_color, dash="dot"),
+            annotation_text=current_compound,
+            annotation_position="top"
+        )
 
-    ax.set_xlabel('Lap Number')
-    ax.set_ylabel('Lap Time')
-    ax.set_title(f'Lap Time Per Lap at \n {session.event['EventName']}')
-    ax.legend()
+    fig.update_layout(
+        legend=dict(title="Drivers"),
+        template="plotly_white",
+        xaxis=dict(showgrid=True),
+        yaxis=dict(showgrid=True)
+    )
 
-    st.pyplot(fig)
+    st.plotly_chart(fig)
