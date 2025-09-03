@@ -3,24 +3,38 @@ from src import api_handler
 
 st.title("Formula One Grand Prix Analyser")
 
+# Initialise session state for drivers if not already set
+if "available_drivers" not in st.session_state:
+    st.session_state.available_drivers = []
+
 season = st.selectbox(
     "Please select a Formula One season:",
     ["2020", "2021", "2022", "2023", "2024"]
 )
+season = int(season)
 
 track = st.selectbox(
     "Please select a Formula One track:",
     ["Monaco", "Silverstone", "Monza", "Suzuka"]
 )
 
-search = st.button('Search for Drivers', type="secondary")
+search = st.button('Search for Drivers', type="primary")
 
 if search:
     driver_data_status = st.text('Loading driver data...')
-    available_drivers = api_handler.getDrivers(int(season), track)
+    st.session_state.available_drivers = api_handler.getDrivers(season, track)
     driver_data_status.text('Driver data collected!')
 
-    drivers = st.multiselect(
-        "Please select your Formula One drivers:",
-        available_drivers,
-    )
+# Use session_state to populate the driver selectbox
+driver = st.selectbox(
+    "Please select your Formula One driver:",
+    st.session_state.available_drivers,
+)
+
+select = st.button('Select Driver', type="primary")
+
+if select:
+    driver_id = driver.split(" - ")[0]  # Extract driver ID from the selected option
+    lap_data_status = st.text('Loading lap data...')
+    api_handler.getDriverLapData(season, track, driver_id)
+    # lap_data_status.text('Lap data collected!')
