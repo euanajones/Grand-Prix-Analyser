@@ -6,6 +6,17 @@ from matplotlib import pyplot as plt
 import plotly.express as px
 import plotly.graph_objects as go
 
+def getTracks(year):
+    try:
+        schedule = fastf1.get_event_schedule(year)
+    except Exception as e:
+        print(f"Error occurred when accessing FastF1 API schedule for {year}: {e}")
+        exit(0)
+
+    tracks = schedule['EventName'].tolist()
+
+    return tracks
+
 def getDrivers(year, track):
     try:
         session = fastf1.get_session(year, track, 'R')

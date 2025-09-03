@@ -6,6 +6,7 @@ st.title("Formula One Grand Prix Analyser")
 # Initialise session state for drivers if not already set
 if "available_drivers" not in st.session_state:
     st.session_state.available_drivers = []
+    st.session_state.tracks = []
 
 season = st.selectbox(
     "Please select a Formula One season:",
@@ -13,9 +14,16 @@ season = st.selectbox(
 )
 season = int(season)
 
+season_select = st.button('Select Season', type="primary")
+
+if season_select:
+    track_data_status = st.text('Loading track data...')
+    st.session_state.tracks = api_handler.getTracks(season)
+    track_data_status.text('Track data collected!')
+
 track = st.selectbox(
     "Please select a Formula One track:",
-    ["Monaco", "Silverstone", "Monza", "Suzuka"]
+    st.session_state.tracks
 )
 
 search = st.button('Search for Drivers', type="primary")
