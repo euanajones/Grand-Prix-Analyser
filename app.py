@@ -1,7 +1,5 @@
 import streamlit as st
 from src import api_handler
-import fastf1
-import fastf1.plotting
 
 st.title("Formula One Grand Prix Analyser")
 

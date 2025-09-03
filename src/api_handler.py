@@ -1,4 +1,5 @@
 import fastf1
+import fastf1.plotting
 from requests import session
 import streamlit as st
 from matplotlib import pyplot as plt
