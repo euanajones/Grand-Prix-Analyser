@@ -1,8 +1,5 @@
 import fastf1
-import fastf1.plotting
-from requests import session
 import streamlit as st
-from matplotlib import pyplot as plt
 import plotly.express as px
 import plotly.graph_objects as go
 
