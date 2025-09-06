@@ -1,15 +1,15 @@
 import pandas as pd
 import fastf1
 
-all_race_data = []
-
 def collectData():
+    all_race_data = []
+
     for year in range(2022, 2024):
         try:
             season_schedule = fastf1.get_event_schedule(year)
         except Exception as e:
             print(f"Error occurred when accessing FastF1 API schedule for {year}: {e}")
-        exit(0)
+            exit(0)
 
         for index, event in season_schedule.iterrows():
             if event['EventFormat'] != 'conventional':
@@ -53,15 +53,23 @@ def collectData():
 
     df.fillna(0, inplace=True)
 
-    return getModelData(df)
+    model_data = getModelData(df)
+
+    return model_data
 
 def getModelData(df):
     model_data = [
+        "Driver",
+        "Track",
         "GridPosition",
         "AvgGridPosition",
         "AvgFinalPosition",
         "AvgHistoricalPosition",
-        "AvgPositionChange"
+        "AvgPositionChange",
+        "FinalPosition"
     ]
+
+    print("Model data collected!")
+    print(df[model_data].to_string(index=False))
 
     return df[model_data]
