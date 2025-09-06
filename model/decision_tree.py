@@ -8,7 +8,7 @@ engine = create_engine('sqlite://', echo=False)
 model_data.to_sql('Model_Data', con=engine, if_exists='replace', index=False)
 
 selected_driver = input("Enter the three-letter driver code (e.g., NOR, VER, HAM): ").upper()
-selected_track = input("Enter the track name (e.g., Monaco, Silverstone): ").title()
+# selected_track = input("Enter the track name (e.g., Monaco, Silverstone): ").title()
 try:
     user_grid_position = int(input(f"Enter the starting grid position for {selected_driver}: "))
 except ValueError:
@@ -18,16 +18,15 @@ else:
         query_X = text(f"""
             SELECT GridPosition, AvgGridPosition, AvgFinalPosition, AvgHistoricalPosition, AvgPositionChange
             FROM Model_Data
-            WHERE (Driver = '{selected_driver}' AND Track = '{selected_track}')
+            WHERE Driver = '{selected_driver}'
         """)
         query_Y = text(f"""
             SELECT FinalPosition
             FROM Model_Data
-            WHERE (Driver = '{selected_driver}' AND Track = '{selected_track}')
+            WHERE Driver = '{selected_driver}'
         """)
         
         sample_data = conn.execute(query_X).fetchall()
-        print( sample_data )
         label_data = conn.execute(query_Y).fetchall()
 
     if not sample_data:
@@ -42,7 +41,7 @@ else:
         query_stats = text(f"""
             SELECT AvgGridPosition, AvgFinalPosition, AvgHistoricalPosition, AvgPositionChange
             FROM Model_Data
-            WHERE (Driver = '{selected_driver}' AND Track = '{selected_track}')
+            WHERE Driver = '{selected_driver}'
             LIMIT 1
         """)
         with engine.connect() as conn:
@@ -56,7 +55,7 @@ else:
 
         print("-" * 40)
         print(f"Driver: {selected_driver}")
-        print(f"Track: {selected_track}")
+        # print(f"Track: {selected_track}")
         print(f"Starting Position: {user_grid_position}")
         print(f"Predicted Final Position: {predicted_pos:.0f}")
         print("-" * 40)

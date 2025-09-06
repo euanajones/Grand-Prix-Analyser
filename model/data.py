@@ -4,7 +4,7 @@ import fastf1
 def collectData():
     all_race_data = []
 
-    for year in range(2022, 2024):
+    for year in range(2022, 2025):
         try:
             season_schedule = fastf1.get_event_schedule(year)
         except Exception as e:
@@ -70,6 +70,6 @@ def getModelData(df):
     ]
 
     print("Model data collected!")
-    print(df[model_data].to_string(index=False))
+    # print(df[model_data].to_string(index=False))
 
     return df[model_data]
